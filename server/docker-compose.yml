@@ -1,0 +1,56 @@
+version: "2"
+
+services:
+  #mysql
+  mysqldb:
+    container_name: my-db
+    restart: always
+    build: ./db
+    volumes:
+      - ./db/db-data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "my#root@password"
+      MYSQL_DATABASE: "my-db"
+      MYSQL_USER: "mydb"
+      MYSQL_PASSWORD: "my#db@password"
+      
+  #php
+  php:
+    container_name: my-php
+    restart: always
+    build: ./php
+    volumes:
+      - /var/run/php-fpm
+      - ./web/www:/var/www
+    user: worker
+    working_dir: /var/www/
+    
+  #nginx
+  web:
+    container_name: my-nginx
+    restart: always
+    depends_on:
+      - mysqldb
+      - php
+    build: ./web
+    expose:
+      - "80"
+      - "443"
+    links:
+      - mysqldb
+    volumes_from:
+      - php
+    volumes:
+      - ./web/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./web/nginx/vhost.d/:/etc/nginx/conf.d/:ro
+    #environment:
+    #  VIRTUAL_HOST: foo.com,foo.bar ...
+    #  LETSENCRYPT_HOST: foo.com,foo.bar ...
+    #  LETSENCRYPT_EMAIL: example@mail.com
+    command: nginx -g 'daemon off;'
+
+networks:
+  default:
+    external:
+      name: nginx_proxy
