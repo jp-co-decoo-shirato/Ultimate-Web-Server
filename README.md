@@ -1,4 +1,4 @@
-# Ultimate-Web-Serber
+# Ultimate-Web-Server
 # 私の考えた最強のWebサーバー構成
 
 @thanks
